@@ -1,17 +1,54 @@
 const { response } = require('express');
+const Usuario = require('../models/Usuario');
+const bcrypt = require('bcryptjs');
+const jwt = require('../helpers/jwt');
 
-const createUser = (req, res = response) => {
+const createUser = async (req, res = response) => {
 
-    const { name, email, password } = req.body;
+    try {
+        const { name, email, password } = req.body;
 
-    // Implement your registration logic here
-    res.status(201).json({ ok: true, message: 'User registered successfully!', user: { name, email } });
+        let existingUser = await Usuario.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ ok: false, message: 'User already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const usuario = new Usuario({ nombre: name, email, password: hashedPassword });
+
+        await usuario.save();
+
+        const token = await jwt.generateToken({ uid: usuario._id, name: usuario.nombre });
+
+        res.status(201).json({ ok: true, message: 'User registered successfully!', token });
+    } catch (error) {
+        console.log("🚀 ~ createUser ~ error:", error)
+        res.status(500).json({ ok: false, message: 'Error registering user' });
+    }
 }
 
-const loginUser = (req, res = response) => {
-    const { email, password } = req.body;
-    // Implement your authentication logic here
-    res.json({ ok: true, message: 'Hello, World!', user: { email } });
+const loginUser = async (req, res = response) => {
+
+    try {
+
+        const { email, password } = req.body;
+        let existingUser = await Usuario.findOne({ email });
+        if (!existingUser) {
+            return res.status(400).json({ ok: false, message: 'Email or password not found' });
+        }
+
+        const isMatch = bcrypt.compareSync(password, existingUser.password);
+        if (!isMatch) {
+            return res.status(400).json({ ok: false, message: 'Email or password not found' });
+        }
+
+        const token = await jwt.generateToken({ uid: existingUser._id, name: existingUser.nombre });
+
+        res.json({ ok: true, message: 'Hello, World!', token });
+    } catch (error) {
+        console.log("🚀 ~ loginUser ~ error:", error)
+        res.status(500).json({ ok: false, message: 'Error logging in user' });
+    }
 }
 
 const logoutUser = (req, res = response) => {
