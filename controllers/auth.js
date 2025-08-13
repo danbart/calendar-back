@@ -1,7 +1,7 @@
 const { response } = require('express');
 const Usuario = require('../models/Usuario');
 const bcrypt = require('bcryptjs');
-const jwt = require('../helpers/jwt');
+const { generateToken } = require('../helpers/jwt');
 
 const createUser = async (req, res = response) => {
 
@@ -18,7 +18,7 @@ const createUser = async (req, res = response) => {
 
         await usuario.save();
 
-        const token = await jwt.generateToken({ uid: usuario._id, name: usuario.nombre });
+        const token = await generateToken({ uid: usuario._id, name: usuario.nombre });
 
         res.status(201).json({ ok: true, message: 'User registered successfully!', token });
     } catch (error) {
@@ -42,7 +42,7 @@ const loginUser = async (req, res = response) => {
             return res.status(400).json({ ok: false, message: 'Email or password not found' });
         }
 
-        const token = await jwt.generateToken({ uid: existingUser._id, name: existingUser.nombre });
+        const token = await generateToken({ uid: existingUser._id, name: existingUser.nombre });
 
         res.json({ ok: true, message: 'Hello, World!', token });
     } catch (error) {
@@ -55,9 +55,11 @@ const logoutUser = (req, res = response) => {
     // Logic to log out a user
 }
 
-const renewToken = (req, res = response) => {
+const renewToken = async (req, res = response) => {
     // Logic to renew a user's token
-    res.json({ message: 'Token renewed successfully!' });
+    const { uid, name } = req;
+    const token = await generateToken({ uid, name });
+    res.json({ ok: true, message: 'Token renewed successfully!', token });
 }
 
 const profile = (req, res = response) => {
