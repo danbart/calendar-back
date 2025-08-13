@@ -9,7 +9,7 @@ const validarJwt = (req = request, res = response, next) => {
 
     try {
 
-        jwt.verify(token, process.env.JWT_SECRET, (err, { uid, name }) => {
+        jwt.verify(token, process.env.JWT_SECRET, (err, { uid = '', name = '' }) => {
             if (err) {
                 return res.status(401).json({ ok: false, message: 'Invalid token' });
             }
