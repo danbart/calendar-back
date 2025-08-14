@@ -20,7 +20,7 @@ const createUser = async (req, res = response) => {
 
         const token = await generateToken({ uid: usuario._id, name: usuario.nombre });
 
-        res.status(201).json({ ok: true, message: 'User registered successfully!', token });
+        res.status(201).json({ ok: true, message: 'User registered successfully!', user: { uid: usuario._id, name: usuario.nombre }, token });
     } catch (error) {
         console.log("🚀 ~ createUser ~ error:", error)
         res.status(500).json({ ok: false, message: 'Error registering user' });
@@ -44,7 +44,7 @@ const loginUser = async (req, res = response) => {
 
         const token = await generateToken({ uid: existingUser._id, name: existingUser.nombre });
 
-        res.json({ ok: true, message: 'Hello, World!', token });
+        res.json({ ok: true, message: 'login successful', user: { uid: existingUser._id, name: existingUser.nombre }, token });
     } catch (error) {
         console.log("🚀 ~ loginUser ~ error:", error)
         res.status(500).json({ ok: false, message: 'Error logging in user' });
@@ -59,7 +59,7 @@ const renewToken = async (req, res = response) => {
     // Logic to renew a user's token
     const { uid, name } = req;
     const token = await generateToken({ uid, name });
-    res.json({ ok: true, message: 'Token renewed successfully!', token });
+    res.json({ ok: true, message: 'Token renewed successfully!', user: { uid, name }, token });
 }
 
 const profile = (req, res = response) => {
